@@ -1,0 +1,108 @@
+extends layout
+
+block content
+	div.mycontainer
+			div#header
+				div.container
+					div.row.bottomBorder
+						div.col-xs-12.text-center#today Tuesday February 20th, 2018
+					div.row
+						div.col-xs-1
+						div.col-xs-5.text5vh Occupied
+						div.col-xs-5.text-right
+							img.modeIcons(src="images/modes.png")
+						div.col-xs-1
+			div#body
+				div.text-right
+					img.weather.active
+					img.weather.Sunny(src="images/sun.png")
+					img.weather.Rainy(src="images/rain.png")
+					img.weather.Cloudy(src="images/clouds.png")
+				div.container
+					div.row
+						div.col-xs-8
+							div.row
+								div.col-xs-12.text4vh.text-center(style='line-height:20pt') Indoor 
+									span.unit &deg;F
+									span.location ---
+							div.row
+								div.col-xs-12
+									div.row
+										div.col-xs-12.indoorTemp.text-center
+											span.indoorTemp_num 73.5
+											span &deg;
+									div.row
+										div.col-xs-6.padRight.text-right Humidity
+										div.col-xs-6.vertDivider Outdoor
+									div.row
+										div.col-xs-6.padRight.text4vh.text-right.outdoorHum 00%
+										div.col-xs-6.text4vh.vertDivider
+											span.outdoorTemp_num 00
+											span.unit &deg;F
+									div.row
+										div.col-xs-6.padRight.text-right
+										div.col-xs-6.vertDivider.weatherCondition ---
+						div.col-xs-4
+							div.slider
+								div.setpoint 74.0
+								img(src="images/slider_indic.png")
+								div#slider_up
+									img.selected_slider_icon(src="images/selected_icon.png")
+								div#slider_down
+									img.selected_slider_icon(src="images/selected_icon.png")
+					div.row.btns
+						div.col-xs-1
+						div.col-xs-2.text-center
+							a#heat_cool_btn
+								div.icon_wrapper
+									img.selected_icon(src="images/selected_icon.png")
+									img.mainIcons(src="images/heatcool_icon.png")
+						div.col-xs-2.text-center
+							a#fan_btn
+								div.icon_wrapper
+									img.selected_icon(src="images/selected_icon.png")
+									img.mainIcons(src="images/fan_icon.png")
+						div.col-xs-2.text-center
+							a#f_c_btn
+								div.icon_wrapper
+									img.selected_icon(src="images/selected_icon.png")
+									img.mainIcons(src="images/f_c_icon.png")
+						div.col-xs-2.text-center
+							a#en_btn
+								div.icon_wrapper
+									img.selected_icon(src="images/selected_icon.png")
+									img.mainIcons(src="images/en_icon.png")
+						div.col-xs-2.text-center
+							a#question_btn
+								div.icon_wrapper
+									img.selected_icon(src="images/selected_icon.png")
+									img.mainIcons(src="images/question_icon.png")
+						div.col-xs-1
+			div#footer
+				div.container
+					div.row
+						div.col-xs-12.text-center Welcome to Schneider Electric
+							div
+								img.lifeison(src="images/logo-life-on.png")
+							div.me
+								a#me &infin;
+	#myModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header(style='background-color: #5e9200;')
+					h3#forecastModalLabel.modal-title 5 Day Forecast - 
+						span(style='float:none').location ---
+						button.close(type='button', data-dismiss='modal', aria-label='Close')
+							span(aria-hidden='true') ×
+				.modal-body.forecast-page
+					| 5 Day Forecast - Loading...
+				.modal-footer
+					span
+						form(style='display:inline-block;font-size:10pt;float:left')
+							| City or Zip Code: 
+							input#zip(style='width:80px', value='60430')
+							button.btn.btn-primary.btn-xs.text-left#refresh_btn(type='button', style='margin-top:-3px') Refresh
+					button.btn.btn-primary.text-left(type='button', data-dismiss='modal') Close
+	div.addToHome
+		a#hideAddtoHome(href="#")
+			img(src="/images/add-to-home-screen.png", style="width: 100%;")

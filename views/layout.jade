@@ -1,0 +1,22 @@
+doctype html
+html.f
+	head
+		block head
+			block title
+				title Schneider Electric 8000
+			block meta
+				meta(name='description', content='')
+				meta(name='keywords', content='')
+				meta(name="apple-mobile-web-app-title", content="SE8000")
+				meta(name="apple-mobile-web-app-capable", content="yes")
+				meta(name="apple-mobile-web-app-status-bar-style", content="black-translucent")
+				meta(name="viewport", content="width=device-width, initial-scale=1.0, maximum-scale = 1.0")
+			link(rel="apple-touch-icon", href="/images/webapp.png")
+			link(rel="apple-touch-startup-image" href="/images/webapp.png")
+			link(rel='stylesheet', href='/css/bootstrap.min.css')
+			link(rel='stylesheet', href='/css/style.css')
+			script(src='//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js')
+			script(src='/scripts/bootstrap.min.js')
+			script(src='/scripts/main.js')
+	body
+		block content
