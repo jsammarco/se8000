@@ -142,6 +142,7 @@ img.weather {
 }
 img.Rain {
   top: 0px;
+  height: 100%;
 }
 img.Sun {
   top: 0px;

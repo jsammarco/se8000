@@ -267,7 +267,7 @@ function requestWeather(cb){
 	current_unit = current_unit.toUpperCase();
 	zip = $('#zip').val();
 	if (!zip) { return console.log("No city/zip for weather"); }
-	var myConditions = ["Sun", "Rain", "Cloud"];
+	var myConditions = ["Sun", "Sunny", "Rain", "Rainy", "Cloud", "Cloudy", "Clear"];
 	var jqxhr = $.getJSON("/weatherData?zip="+zip+"&unit="+current_unit).done(function(data) {
 		console.log("success", data );
 		if (!data || data.length === 0) {
@@ -279,14 +279,14 @@ function requestWeather(cb){
 			$('.weatherCondition').text(data.condition);
 			var myCondition = -1;
 			for (var i = 0; i < myConditions.length; i++) {
-				myCondition = data.condition.indexOf(myConditions[i]);
+				myCondition = myConditions[i].indexOf(data.condition);
 				console.log(myConditions[i], data.condition, myCondition);
-				if (myCondition !== -1) { myCondition = i; break; }
+				if (myCondition > -1) { myCondition = i; break; }
 			}
-			if (myCondition !== -1) {
+			if (myCondition > -1) {
 				$('.weather.active').fadeOut(5000, function() {
 					$(this).removeClass('active');
-					console.log("Showing", myConditions[myCondition])
+					console.log("Showing", myConditions[myCondition], $('.'+myConditions[myCondition]))
 					$('.'+myConditions[myCondition]).addClass('active').fadeIn(5000);
 				});
 			}
