@@ -140,13 +140,13 @@ img.weather {
   right: -10px;
   display: none;
 }
-img.Rainy {
+img.Rain {
   top: 0px;
 }
-img.Sunny {
+img.Sun {
   top: 0px;
 }
-img.Cloudy {
+img.Cloud {
   bottom: 0px;
 }
 .weatherCondition {

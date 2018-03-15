@@ -267,7 +267,7 @@ function requestWeather(cb){
 	current_unit = current_unit.toUpperCase();
 	zip = $('#zip').val();
 	if (!zip) { return console.log("No city/zip for weather"); }
-	var myConditions = ["Sunny", "Rainy", "Cloudy"];
+	var myConditions = ["Sun", "Rain", "Cloud"];
 	var jqxhr = $.getJSON("/weatherData?zip="+zip+"&unit="+current_unit).done(function(data) {
 		console.log("success", data );
 		if (!data || data.length === 0) {
