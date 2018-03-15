@@ -15,10 +15,11 @@ var iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/),
 	lastWeather = -1,
 	zip = "",
 	weatherInterval = null,
-	updatingWeather = false;
+	updatingWeather = false,
+	mode = "";
 
 $(function (){
-	$('#today').text(day+" "+month+" "+now.getDay()+", "+now.getFullYear());
+	$('#today').text(day+" "+month+" "+now.getDate()+", "+now.getFullYear());
 	window.scrollTo(0,1);//Hide Android Top Bar
 	var indoorTemp = $('.indoorTemp'),
 		setpoint = $('.setpoint');
@@ -70,18 +71,25 @@ $(function (){
 	});
 	$('#heat_cool_btn').click(function(){
 		$(".selected_icon", this).fadeToggle(function(){
-			alert("Allow authorized personel to override the heating/cooling mode.");
-			setTimeout(function (){
-				$('#heat_cool_btn .selected_icon').fadeOut();
-			}, 1000);
+			//alert("Allow authorized personel to override the heating/cooling mode.");
+			$('.heatingcooling').fadeOut(function(){
+				if($('.heatingcooling').attr('src') == "images/heat_icon.png"){
+					$('.heatingcooling').attr('src', "images/snowflake_icon.png");
+				}else{
+					$('.heatingcooling').attr('src', "images/heat_icon.png");
+				}
+				$('.heatingcooling').fadeIn();
+			});
 		});
 	});
 	$('#fan_btn').click(function(){
 		$(".selected_icon", this).fadeToggle(function(){
-			alert("Allow authorized personel to override the fan.");
-			setTimeout(function (){
-				$('#fan_btn .selected_icon').fadeOut();
-			}, 1000);
+			//alert("Allow authorized personel to override the fan.");
+			if($('.fanon').hasClass('spin')){
+				$('.fanon').removeClass('spin');
+			}else{
+				$('.fanon').addClass('spin');
+			}
 		});
 	});
 	$('#f_c_btn').click(function(){
@@ -136,7 +144,85 @@ $(function (){
 			}, 1500);
 		}, 1500);
 	});
+	setInterval(checkmode, 2000);
+	setInterval(heatcool, 5000);
 });
+
+function heatcool() {
+	//if (mode == "") { return false; }
+	var sp = parseFloat($('.setpoint').text()),
+		temp = parseFloat($('.indoorTemp_num').text()),
+		ran = parseFloat(Math.abs(Math.floor(Math.random() * 10)/10 -0.7).toFixed(1));
+	ran = Math.max(ran, 0.3);
+	console.log(ran);
+	if (mode == "heating") {
+		$('.indoorTemp_num').text((temp + ran).toFixed(1));
+	}else if (mode == "cooling") {
+		$('.indoorTemp_num').text((temp - ran).toFixed(1));
+	}else{
+		$('.indoorTemp_num').text((temp - 0.1).toFixed(1));
+	}
+}
+
+function heating() {
+	console.log("heating");
+	if (mode == "heating") { return false; }
+	mode = "heating";
+	$('#fan_btn .selected_icon').fadeIn();
+	$('#heat_cool_btn .selected_icon').fadeIn();
+	if(!$('.fanon').hasClass('spin')){
+		$('.fanon').addClass('spin');
+	}
+	$('.heatingcooling').fadeOut(function(){
+		$('.heatingcooling').attr('src', "images/heat_icon.png");
+		$('.heatingcooling').fadeIn();
+	});
+}
+
+function checkmode(){
+	if (Math.floor(Math.random() * 4) + 1 > 2) { return console.log("Random 1/2 skip checkmode"); }
+	var sp = parseFloat($('.setpoint').text()),
+		temp = parseFloat($('.indoorTemp_num').text());
+	if (temp > sp + 1) {
+		console.log("Cooling");
+		cooling();
+	}else if(temp < sp - 1){
+		console.log("Heating");
+		heating();
+	}else{
+		satisfied();
+	}
+}
+
+function cooling() {
+	console.log("cooling");
+	if (mode == "cooling") { return false; }
+	mode = "cooling";
+	$('#fan_btn .selected_icon').fadeIn();
+	$('#heat_cool_btn .selected_icon').fadeIn();
+	if(!$('.fanon').hasClass('spin')){
+		$('.fanon').addClass('spin');
+	}
+	$('.heatingcooling').fadeOut(function(){
+		$('.heatingcooling').attr('src', "images/snowflake_icon.png");
+		$('.heatingcooling').fadeIn();
+	});
+}
+
+function satisfied() {
+	console.log("satisfied");
+	if (mode == "") { return false; }
+	var sp = parseFloat($('.setpoint').text()),
+		temp = parseFloat($('.indoorTemp_num').text());
+	if (mode == "heating" && temp > sp + 0.5) { mode = ""; }
+	if (mode == "cooling" && temp < sp - 0.5) { mode = ""; }
+	if(mode == ""){
+		$('#fan_btn .selected_icon').fadeOut();
+		$('#heat_cool_btn .selected_icon').fadeOut();
+		$('.heatingcooling').fadeOut();
+		$('.fanon').removeClass('spin');
+	}
+}
 
 function changeWeather(){
 	var conditions = ["Sunny", "Rainy", "Cloudy"],
