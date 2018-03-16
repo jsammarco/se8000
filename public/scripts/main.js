@@ -17,7 +17,8 @@ var iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/),
 	weatherInterval = null,
 	updatingWeather = false,
 	mode = "",
-	disableFakeTemp = true;
+	disableFakeTemp = false,
+	indoorDataUrl = "";
 
 $(function (){
 	$('#today').text(day+" "+month+" "+now.getDate()+", "+now.getFullYear());
@@ -132,6 +133,14 @@ $(function (){
 		    return false;
 	    }
 	});
+	$('#indoorDataUrl').keypress(function (e){
+		var keycode = event.keyCode || event.which;
+		if(keycode == 13) {
+			e.preventDefault();
+	        $('#changeIndoorDataUrl').click();
+		    return false;
+	    }
+	});
 	$('#refresh_btn').click(function () {
 		var that = $(this);
 		that.text("Refreshing");
@@ -145,13 +154,44 @@ $(function (){
 			}, 1500);
 		}, 1500);
 	});
+	$("#changeIndoorDataUrl").click(function () {
+		var that = $(this);
+		that.text("Checking");
+		clearInterval(weatherInterval);
+		weatherInterval = setInterval(requestWeather, 60000);
+		requestWeather();
+		setTimeout(function () {
+			that.text("Updated");
+			setTimeout(function () {
+				that.text("Update");
+			}, 1500);
+		}, 1500);
+		indoorDataUrl = $('#indoorDataUrl').val();
+		createCookie("indoorDataUrl", indoorDataUrl, 365);
+		requestWeather(function() {
+			setTimeout(function() {
+				if(!disableFakeTemp){
+					alert("Failed. The device is offline, url is invalid or not a valid JSONP call with data object.");
+				}else{
+					alert("Success");
+				}
+			}, 1500);
+		});
+	});
+
 	setInterval(checkmode, 2000);
 	setInterval(heatcool, 5000);
 	var cookie_zip = readCookie("zip");
+	var cookie_indoorDataUrl = readCookie("indoorDataUrl");
 	console.log("cookie_zip", cookie_zip);
+	console.log("cookie_indoorDataUrl", cookie_indoorDataUrl);
 	if (cookie_zip != "" && cookie_zip !== null) {
 		zip = cookie_zip;
 		$('#zip').val(zip);
+	}
+	if (cookie_indoorDataUrl != "" && cookie_indoorDataUrl !== null) {
+		indoorDataUrl = cookie_indoorDataUrl;
+		$('#indoorDataUrl').val(indoorDataUrl);
 	}
 });
 
@@ -270,6 +310,27 @@ function switchUnits(unit){
 	$('html').removeClass(current_unit).addClass(unit);
 }
 
+function updateIndoorData(data){//JSONP Function (Called from Indoor WiFi Temp/Hum Device)
+	disableFakeTemp = true;
+	var current_unit = $('html').hasClass("f") ? "f" : "c";
+	current_unit = current_unit.toUpperCase();
+	if (data && data.f) {
+		disableFakeTemp = true;
+		if (current_unit == "F") {
+			$('.indoorTemp_num').text(data.f).addClass('real');
+		}else{
+			$('.indoorTemp_num').text(data.c).addClass('real');
+		}
+		if (data.h) {
+			$('.outdoorHum').text(data.h+"%").addClass('real');//Now indoor hum
+		}
+	}else{
+		disableFakeTemp = false;
+		$('.outdoorHum').removeClass('real');
+		$('.indoorTemp_num').removeClass('real');
+	}
+}
+
 function requestWeather(cb){
 	zip = $('#zip').val();
 	if (!cb) {
@@ -282,28 +343,36 @@ function requestWeather(cb){
 	current_unit = current_unit.toUpperCase();
 	if (!zip) { return console.log("No city/zip for weather"); }
 	var myConditions = ["Sun", "Sunny", "Rain", "Rainy", "Cloud", "Cloudy", "Clear"];
-	var indoor = $.getJSON("/indoorData").done(function(data) {
-		console.log("indoor: ", data);
-		if (data && data.f) {
-			disableFakeTemp = true;
-			if (current_unit == "F") {
-				$('.indoorTemp_num').text(data.f).addClass('real');
-			}else{
-				$('.indoorTemp_num').text(data.c).addClass('real');
-			}
-			if (data.h) {
-				$('.outdoorHum').text(data.h+"%").addClass('real');//Now indoor hum
-			}
-		}else{
-			disableFakeTemp = false;
-			$('.outdoorHum').removeClass('real');
-			$('.indoorTemp_num').removeClass('real');
-		}
-	}).fail(function() {
+	var indoorDataUrl = $('#indoorDataUrl').val();//"http://10.0.1.36/?callback=?";
+	if(indoorDataUrl != ""){
 		disableFakeTemp = false;
 		$('.outdoorHum').removeClass('real');
 		$('.indoorTemp_num').removeClass('real');
-	});
+		$.getJSON(indoorDataUrl);
+	}
+	// var indoor = $.getJSON("/indoorData").done(function(data) {
+	// 	console.log("indoor: ", data);
+	// 	if (data && data.f) {
+	// 		disableFakeTemp = true;
+	// 		if (current_unit == "F") {
+	// 			$('.indoorTemp_num').text(data.f).addClass('real');
+	// 		}else{
+	// 			$('.indoorTemp_num').text(data.c).addClass('real');
+	// 		}
+	// 		if (data.h) {
+	// 			$('.outdoorHum').text(data.h+"%").addClass('real');//Now indoor hum
+	// 		}
+	// 	}else{
+	// 		disableFakeTemp = false;
+	// 		$('.outdoorHum').removeClass('real');
+	// 		$('.indoorTemp_num').removeClass('real');
+	// 	}
+	// }).fail(function() {
+	// 	disableFakeTemp = false;
+	// 	$('.outdoorHum').removeClass('real');
+	// 	$('.indoorTemp_num').removeClass('real');
+	// });
+	$
 	var outdoor = $.getJSON("/weatherData?zip="+zip+"&unit="+current_unit).done(function(data) {
 		console.log("success", data );
 		if (!data || data.length === 0) {
@@ -397,7 +466,9 @@ function eraseCookie(name) {
     createCookie(name, "", -1);
 }
 
-
+function jsonCallback(json){
+	console.log(json);
+}
 
 
 

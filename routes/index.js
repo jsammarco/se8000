@@ -38,8 +38,11 @@ exports.weatherData = function(req, res){
 }
 
 exports.indoorData = function(req, res){
+	var indoorDataUrl = req.query.indoorDataUrl;
+	//'http://10.0.1.36/';
+	if (!indoorDataUrl) { return res.send(404); }
 	var options = {
-	  uri: 'http://10.0.1.36/',
+	  uri: indoorDataUrl,
 	  method: 'GET'
 	};
 	request(options, function (error, response, data) {
