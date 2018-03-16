@@ -29,6 +29,7 @@ if (app.get('env') == 'development') {
 }
 
 app.get('/weatherData', routes.weatherData);
+app.get('/indoorData', routes.indoorData);
 
 app.get('/', routes.index);
 

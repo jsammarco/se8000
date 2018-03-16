@@ -1,4 +1,5 @@
-var weather = require('weather-js');
+var weather = require('weather-js'),
+	request = require('request');
 
 
 exports.index = function(req, res){
@@ -33,5 +34,28 @@ exports.weatherData = function(req, res){
 		humidity = current.humidity;
 		console.log(temp, humidity, img, condition);
 		res.send({location: location, temp: temp, humidity: humidity, img: img, condition: condition, forecast: forecast});
+	});
+}
+
+exports.indoorData = function(req, res){
+	var options = {
+	  uri: 'http://10.0.1.36/',
+	  method: 'GET'
+	};
+	request(options, function (error, response, data) {
+		if (!error && response.statusCode == 200) {
+			data = JSON.parse(data);
+			var c_temp = data.c,
+				f_temp = data.f,
+				hum = data.h;
+			console.log("Indoor: "+c_temp+" C", f_temp+" F "+hum+"% RH");
+			res.send({
+				c: c_temp,
+				f: f_temp,
+				h: hum
+			});
+		}else{
+			res.send(404);
+		}
 	});
 };

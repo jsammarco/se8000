@@ -16,7 +16,8 @@ var iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/),
 	zip = "",
 	weatherInterval = null,
 	updatingWeather = false,
-	mode = "";
+	mode = "",
+	disableFakeTemp = true;
 
 $(function (){
 	$('#today').text(day+" "+month+" "+now.getDate()+", "+now.getFullYear());
@@ -146,15 +147,22 @@ $(function (){
 	});
 	setInterval(checkmode, 2000);
 	setInterval(heatcool, 5000);
+	var cookie_zip = readCookie("zip");
+	console.log("cookie_zip", cookie_zip);
+	if (cookie_zip != "" && cookie_zip !== null) {
+		zip = cookie_zip;
+		$('#zip').val(zip);
+	}
 });
 
 function heatcool() {
+	if (disableFakeTemp) { return false; }
 	//if (mode == "") { return false; }
 	var sp = parseFloat($('.setpoint').text()),
 		temp = parseFloat($('.indoorTemp_num').text()),
 		ran = parseFloat(Math.abs(Math.floor(Math.random() * 10)/10 -0.7).toFixed(1));
 	ran = Math.max(ran, 0.3);
-	console.log(ran);
+	//console.log(ran);
 	if (mode == "heating") {
 		$('.indoorTemp_num').text((temp + ran).toFixed(1));
 	}else if (mode == "cooling") {
@@ -165,7 +173,7 @@ function heatcool() {
 }
 
 function heating() {
-	console.log("heating");
+	//console.log("heating");
 	if (mode == "heating") { return false; }
 	mode = "heating";
 	$('#fan_btn .selected_icon').fadeIn();
@@ -180,14 +188,16 @@ function heating() {
 }
 
 function checkmode(){
-	if (Math.floor(Math.random() * 4) + 1 > 2) { return console.log("Random 1/2 skip checkmode"); }
+	if (Math.floor(Math.random() * 4) + 1 > 2) {
+		return false;//console.log("Random 1/2 skip checkmode");
+	}
 	var sp = parseFloat($('.setpoint').text()),
 		temp = parseFloat($('.indoorTemp_num').text());
 	if (temp > sp + 1) {
-		console.log("Cooling");
+		//console.log("Cooling");
 		cooling();
 	}else if(temp < sp - 1){
-		console.log("Heating");
+		//console.log("Heating");
 		heating();
 	}else{
 		satisfied();
@@ -195,7 +205,7 @@ function checkmode(){
 }
 
 function cooling() {
-	console.log("cooling");
+	//console.log("cooling");
 	if (mode == "cooling") { return false; }
 	mode = "cooling";
 	$('#fan_btn .selected_icon').fadeIn();
@@ -210,7 +220,7 @@ function cooling() {
 }
 
 function satisfied() {
-	console.log("satisfied");
+	//console.log("satisfied");
 	if (mode == "") { return false; }
 	var sp = parseFloat($('.setpoint').text()),
 		temp = parseFloat($('.indoorTemp_num').text());
@@ -229,7 +239,7 @@ function changeWeather(){
 		rand = lastWeather;
 	while(lastWeather === rand){//Never show the same twice
 		rand = conditions[Math.floor(Math.random() * conditions.length)];
-		console.log(lastWeather, rand);
+		//console.log(lastWeather, rand);
 	}
 	lastWeather = rand
 	$('.weather').fadeOut(5000, function() {
@@ -261,14 +271,40 @@ function switchUnits(unit){
 }
 
 function requestWeather(cb){
-	if (!cb) { cb = function(){}; console.log(123); }
+	zip = $('#zip').val();
+	if (!cb) {
+		cb = function(){};
+		createCookie("zip", zip, 365);
+		console.log("requestWeather cb not func, forced refresh, store cookie");
+	}
 	updatingWeather = true;
 	var current_unit = $('html').hasClass("f") ? "f" : "c";
 	current_unit = current_unit.toUpperCase();
-	zip = $('#zip').val();
 	if (!zip) { return console.log("No city/zip for weather"); }
 	var myConditions = ["Sun", "Sunny", "Rain", "Rainy", "Cloud", "Cloudy", "Clear"];
-	var jqxhr = $.getJSON("/weatherData?zip="+zip+"&unit="+current_unit).done(function(data) {
+	var indoor = $.getJSON("/indoorData").done(function(data) {
+		console.log("indoor: ", data);
+		if (data && data.f) {
+			disableFakeTemp = true;
+			if (current_unit == "F") {
+				$('.indoorTemp_num').text(data.f).addClass('real');
+			}else{
+				$('.indoorTemp_num').text(data.c).addClass('real');
+			}
+			if (data.h) {
+				$('.outdoorHum').text(data.h+"%").addClass('real');//Now indoor hum
+			}
+		}else{
+			disableFakeTemp = false;
+			$('.outdoorHum').removeClass('real');
+			$('.indoorTemp_num').removeClass('real');
+		}
+	}).fail(function() {
+		disableFakeTemp = false;
+		$('.outdoorHum').removeClass('real');
+		$('.indoorTemp_num').removeClass('real');
+	});
+	var outdoor = $.getJSON("/weatherData?zip="+zip+"&unit="+current_unit).done(function(data) {
 		console.log("success", data );
 		if (!data || data.length === 0) {
 			updatingWeather = false;
@@ -279,11 +315,14 @@ function requestWeather(cb){
 			$('.weatherCondition').text(data.condition);
 			var myCondition = -1;
 			for (var i = 0; i < myConditions.length; i++) {
-				myCondition = myConditions[i].indexOf(data.condition);
+				myCondition = data.condition.indexOf(myConditions[i]);
 				console.log(myConditions[i], data.condition, myCondition);
 				if (myCondition > -1) { myCondition = i; break; }
 			}
 			if (myCondition > -1) {
+				if($('.weather.active').attr('src') == $('.'+myConditions[myCondition]).attr('src')){
+					return false;//console.log("Same weather bg.");
+				}
 				$('.weather.active').fadeOut(5000, function() {
 					$(this).removeClass('active');
 					console.log("Showing", myConditions[myCondition], $('.'+myConditions[myCondition]))
@@ -302,14 +341,14 @@ function requestWeather(cb){
 			$('.forecast-page').html(forecastData);
 		}
 		if (data.temp) { $('.outdoorTemp_num').text(data.temp); }
-		if (data.humidity) { $('.outdoorHum').text(data.humidity + "%"); }
+		if (data.humidity && !disableFakeTemp) { $('.outdoorHum').text(data.humidity + "%"); }
 		if (data.location) { $('.location').text(data.location); }
 		updatingWeather = false;
 		cb();
 		return data;
 	}).fail(function() {
 		updatingWeather = false;
-		alert("Unable to get weather data.");
+		//alert("Unable to get weather data.");
 		console.log("Failed to get weather data");
 	});
 }
@@ -329,6 +368,33 @@ function round5(x){
 		x == parseInt(x)+0.5 || 
 		x == parseInt(x)) { return parseFloat(x); }
     return parseFloat(Math.round(parseInt(x)).toFixed(1));
+}
+
+// Cookies
+function createCookie(name, value, days) {
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        var expires = "; expires=" + date.toGMTString();
+    }
+    else var expires = "";               
+
+    document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function eraseCookie(name) {
+    createCookie(name, "", -1);
 }
 
 
