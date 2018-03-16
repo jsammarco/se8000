@@ -179,8 +179,8 @@ ul#forecast-list {
 }
 ul#forecast-list li {
   border-bottom: 3px solid #4a7311;
-  min-height: 8vh;
-  margin-bottom: 2vh;
+  min-height: 7vh;
+  margin-bottom: 1vh;
   font-size: 1em;
   list-style: none;
 }
@@ -221,6 +221,9 @@ ul#forecast-list li {
   cursor: vertical-text;
   user-select: none;
   color: #008000;
+}
+#toggleSettings {
+  cursor: pointer;
 }
 .spin {
   -webkit-animation: spin 6s linear infinite;

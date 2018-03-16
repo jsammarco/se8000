@@ -178,6 +178,9 @@ $(function (){
 			}, 1500);
 		});
 	});
+	$("#toggleSettings").click(function () {
+		$("#settingsPanel").slideToggle();
+	});
 
 	setInterval(checkmode, 2000);
 	setInterval(heatcool, 5000);
