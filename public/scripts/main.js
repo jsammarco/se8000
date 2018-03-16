@@ -106,7 +106,7 @@ $(function (){
 	});
 	$('#en_btn').click(function(){
 		$(".selected_icon", this).fadeToggle(function(){
-			alert("Allow authorized personel or hotel guests to change the language.");
+			alert("Allow authorized personel or hotel guests to change the language.\n\nOr hotel room thermostat languages can be set automatically via your booking system through Schneider Electric solutions.");
 		});
 	});
 	$('.vertDivider').click(function(){
